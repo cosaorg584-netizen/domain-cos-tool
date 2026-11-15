@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>domain.cos — Find Your Perfect Domain</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* =========================================
+       RESET & VARIABLES
+    ========================================= */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    *::selection { background: rgba(49, 85, 255, 0.4); color: #fff; }
+
+    :root {
+      --bg: #05050a;
+      --panel: rgba(18, 20, 32, 0.7);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-focus: rgba(49, 85, 255, 0.5);
+      --text: #f0f0f6;
+      --text-dim: #8e90a6;
+      --blue-primary: #3155ff;
+      --blue-glow: rgba(49, 85, 255, 0.5);
+      --green: #4ade80;
+      --green-bg: rgba(74, 222, 128, 0.1);
+      --red: #f87171;
+      --red-bg: rgba(248, 113, 113, 0.1);
+      --yellow: #facc15;
+      --yellow-bg: rgba(250, 204, 21, 0.1);
+      --radius: 16px;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, sans-serif;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* =========================================
+       BACKGROUND EFFECTS
+    ========================================= */
+    .bg-glow {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    
+    .glow-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(120px);
+      opacity: 0.35;
+    }
+    
+    .glow-blob.b1 {
+      width: 600px; height: 600px;
+      top: -200px; left: -200px;
+      background: radial-gradient(circle, var(--blue-primary) 0%, transparent 70%);
+      animation: float 20s ease-in-out infinite;
+    }
+    
+    .glow-blob.b2 {
+      width: 500px; height: 500px;
+      bottom: -150px; right: -100px;
+      background: radial-gradient(circle, #8338ec 0%, transparent 70%);
+      animation: float 25s ease-in-out infinite reverse;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(50px, 50px) scale(1.1); }
+    }
+
+    .grid-overlay {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 40px 40px;
+      mask-image: radial-gradient(ellipse at center, black 10%, transparent 60%);
+      -webkit-mask-image: radial-gradient(ellipse at center, black 10%, transparent 60%);
+    }
+
+    /* =========================================
+       THE CSS 3D ICON (Matches your image)
+    ========================================= */
+    .icon-3d {
+      position: relative;
+      width: 60px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: var(--blue-primary);
+      /* Creating the 3D spiral depth effect */
+      box-shadow: 
+        0 0 0 3px #2442d8,
+        0 0 0 6px #1c35b3,
+        0 0 0 9px #14278c,
+        0 0 0 12px #0e1b66,
+        0 0 25px 10px rgba(49, 85, 255, 0.6),
+        inset 0 0 20px rgba(255, 255, 255, 0.4);
+      color: white;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 1.8rem;
+      line-height: 1;
+      padding-bottom: 4px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+
+    /* =========================================
+       CINEMATIC INTRO SEQUENCE
+    ========================================= */
+    #intro-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.8s ease, visibility 0.8s ease;
+    }
+
+    #intro-screen.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    /* 1. Icon Animation (Spins in) */
+    .intro-icon-wrap {
+      opacity: 0;
+      transform: scale(0.5) rotate(-180deg);
+      animation: iconReveal 1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s forwards;
+      margin-bottom: 2rem;
+    }
+
+    @keyframes iconReveal {
+      100% { opacity: 1; transform: scale(1.5) rotate(0deg); }
+    }
+
+    /* 2. Typing Text Animation */
+    .intro-text {
+      display: flex;
+      align-items: baseline;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(2rem, 6vw, 3.5rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .intro-text .letter {
+      opacity: 0;
+      transform: translateY(15px);
+      animation: typeIn 0.3s ease forwards;
+    }
+
+    /* Staggered delays for d-o-m-a-i-n */
+    .intro-text .letter:nth-child(1) { animation-delay: 1.2s; }
+    .intro-text .letter:nth-child(2) { animation-delay: 1.35s; }
+    .intro-text .letter:nth-child(3) { animation-delay: 1.5s; }
+    .intro-text .letter:nth-child(4) { animation-delay: 1.65s; }
+    .intro-text .letter:nth-child(5) { animation-delay: 1.8s; }
+    .intro-text .letter:nth-child(6) { animation-delay: 1.95s; }
+
+    @keyframes typeIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 3. ".cos" Fade In */
+    .intro-text .dot-cos {
+      opacity: 0;
+      color: var(--blue-primary);
+      animation: fadeIn 0.5s ease 2.3s forwards;
+      margin-left: 2px;
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+
+    /* =========================================
+       MAIN APP INTERFACE
+    ========================================= */
+    #app {
+      position: relative;
+      z-index: 10;
+      opacity: 0;
+      transition: opacity 1s ease;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #app.visible {
+      opacity: 1;
+    }
+
+    /* Header */
+    header {
+      padding: 1.5rem 2rem;
+      display: flex;
+      align-items: center;
+      animation: slideDown 0.8s ease both;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .brand .icon-3d {
+      width: 32px;
+      height: 32px;
+      font-size: 1rem;
+      box-shadow: 
+        0 0 0 1.5px #2442d8,
+        0 0 0 3px #1c35b3,
+        0 0 0 4.5px #14278c,
+        0 0 15px 5px rgba(49, 85, 255, 0.5),
+        inset 0 0 10px rgba(255, 255, 255, 0.4);
+      animation: spinSlow 12s linear infinite;
+    }
+
+    @keyframes spinSlow {
+      to { transform: rotate(360deg); }
+    }
+
+    .brand-text {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-text .dot-cos {
+      color: var(--blue-primary);
+    }
+
+    /* Main Content */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      max-width: 800px;
+      margin: 0 auto;
+      width: 100%;
+      animation: slideUp 0.8s ease 0.2s both;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .hero h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(2rem, 5vw, 3rem);
+      line-height: 1.1;
+      margin-bottom: 1rem;
+      letter-spacing: -0.03em;
+    }
+
+    .hero p {
+      color: var(--text-dim);
+      font-size: 1.1rem;
+    }
+
+    /* Search Form */
+    .search-container {
+      width: 100%;
+      background: var(--panel);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 2rem;
+      box-shadow: 0 20px 60px -15px rgba(0,0,0,0.5);
+    }
+
+    .input-group {
+      position: relative;
+      display: flex;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 1.2rem 1.2rem 1.2rem 3.5rem;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: #fff;
+      font-size: 1.1rem;
+      font-family: inherit;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    .input-group input:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 4px var(--blue-glow);
+      background: rgba(0, 0, 0, 0.6);
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 1.2rem;
+      font-size: 1.2rem;
+      color: var(--text-dim);
+      pointer-events: none;
+    }
+
+    .options-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (max-width: 600px) {
+      .options-row { grid-template-columns: 1fr; }
+    }
+
+    .label-text {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-dim);
+      margin-bottom: 0.5rem;
+    }
+
+    select {
+      width: 100%;
+      padding: 1rem;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: #fff;
+      font-size: 0.95rem;
+      font-family: inherit;
+      outline: none;
+      appearance: none;
+      cursor: pointer;
+    }
+
+    .tld-container {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .tld-pill {
+      position: relative;
+      cursor: pointer;
+    }
+
+    .tld-pill input {
+      position: absolute;
+      opacity: 0;
+    }
+
+    .tld-pill span {
+      display: inline-block;
+      padding: 0.8rem 1rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .tld-pill input:checked + span {
+      background: rgba(49, 85, 255, 0.2);
+      border-color: var(--blue-primary);
+      color: #fff;
+      box-shadow: 0 0 15px rgba(49, 85, 255, 0.3);
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 1.2rem;
+      background: var(--blue-primary);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-submit:hover {
+      background: #4a6bff;
+      box-shadow: 0 10px 25px rgba(49, 85, 255, 0.4);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.7;
+      cursor: wait;
+    }
+
+    /* Results Area */
+    .results-section {
+      width: 100%;
+      margin-top: 3rem;
+      display: none;
+    }
+
+    .results-section.active {
+      display: block;
+      animation: slideUp 0.5s ease;
+    }
+
+    #status-msg {
+      text-align: center;
+      color: var(--text-dim);
+      margin-bottom: 1.5rem;
+      font-size: 0.95rem;
+    }
+
+    .domain-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .domain-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 1rem 1.5rem;
+      border-radius: 12px;
+      transition: all 0.2s;
+      animation: slideUp 0.4s ease both;
+    }
+
+    .domain-item:hover {
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .domain-name {
+      font-family: 'Space Grotesk', monospace;
+      font-size: 1.1rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .domain-why {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      font-weight: 400;
+      font-family: 'Inter', sans-serif;
+      display: none;
+    }
+
+    @media(min-width: 768px) {
+      .domain-why { display: block; }
+    }
+
+    .badge {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 0.25rem 0.6rem;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    .badge.checking { background: rgba(255,255,255,0.1); color: #ccc; }
+    .badge.avail { background: var(--green-bg); color: var(--green); }
+    .badge.taken { background: var(--red-bg); color: var(--red); }
+    .badge.unknown { background: var(--yellow-bg); color: var(--yellow); }
+
+    .btn-buy {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+      text-decoration: none;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+
+    .btn-buy:hover { background: var(--blue-primary); }
+    .btn-buy.hidden { visibility: hidden; }
+
+    /* Animations */
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Spinner */
+    .spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+  <!-- BACKGROUND -->
+  <div class="bg-glow">
+    <div class="glow-blob b1"></div>
+    <div class="glow-blob b2"></div>
+    <div class="grid-overlay"></div>
+  </div>
+
+  <!-- CINEMATIC INTRO -->
+  <div id="intro-screen">
+    <div class="intro-icon-wrap">
+      <!-- Recreating your image icon -->
+      <div class="icon-3d">c</div>
+    </div>
+    <div class="intro-text">
+      <span class="letter">d</span>
+      <span class="letter">o</span>
+      <span class="letter">m</span>
+      <span class="letter">a</span>
+      <span class="letter">i</span>
+      <span class="letter">n</span>
+      <span class="dot-cos">.cos</span>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="app">
+    <header>
+      <a href="#" class="brand">
+        <div class="icon-3d">c</div>
+        <div class="brand-text">domain<span class="dot-cos">.cos</span></div>
+      </a>
+    </header>
+
+    <main>
+      <div class="hero">
+        <h1>Find your perfect<br/>domain name.</h1>
+        <p>Describe your idea. Our AI generates brandable names and checks availability instantly.</p>
+      </div>
+
+      <div class="search-container">
+        <form id="search-form">
+          <div class="input-group">
+            <span class="input-icon">🔍</span>
+            <input type="text" id="keyword" placeholder="e.g. coffee, ai, fashion..." required autocomplete="off" />
+          </div>
+
+          <div class="options-row">
+            <div>
+              <label class="label-text">Style</label>
+              <select id="style">
+                <option value="brandable">Brandable (Spotify-like)</option>
+                <option value="short">Short (Figma-like)</option>
+                <option value="compound">Compound (Mailchimp)</option>
+                <option value="keyword">Keyword-based</option>
+                <option value="playful">Playful</option>
+              </select>
+            </div>
+            <div>
+              <label class="label-text">Extensions</label>
+              <div class="tld-container" id="tlds">
+                <label class="tld-pill">
+                  <input type="checkbox" value="com" checked>
+                  <span>.com</span>
+                </label>
+                <label class="tld-pill">
+                  <input type="checkbox" value="io" checked>
+                  <span>.io</span>
+                </label>
+                <label class="tld-pill">
+                  <input type="checkbox" value="ai" checked>
+                  <span>.ai</span>
+                </label>
+                <label class="tld-pill">
+                  <input type="checkbox" value="co">
+                  <span>.co</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-submit" id="submit-btn">Generate Domains</button>
+        </form>
+      </div>
+
+      <div class="results-section" id="results-section">
+        <p id="status-msg"></p>
+        <ul class="domain-list" id="domain-list"></ul>
+      </div>
+    </main>
+  </div>
+
+  <!-- APP LOGIC -->
+  <script>
+    // 1. Intro Sequence Timer
+    setTimeout(() => {
+      document.getElementById('intro-screen').classList.add('hidden');
+      document.getElementById('app').classList.add('visible');
+    }, 3200); // 3.2 seconds to finish the text animation
+
+    // 2. Search Logic
+    const form = document.getElementById('search-form');
+    const kwInput = document.getElementById('keyword');
+    const styleSelect = document.getElementById('style');
+    const tldContainer = document.getElementById('tlds');
+    const submitBtn = document.getElementById('submit-btn');
+    const resultsSection = document.getElementById('results-section');
+    const statusMsg = document.getElementById('status-msg');
+    const domainList = document.getElementById('domain-list');
+    
+    let affiliateId = '';
+
+    // Fetch config (affiliate ID)
+    fetch('/api/config')
+      .then(res => res.json())
+      .then(data => affiliateId = data.affiliateId || '')
+      .catch(() => {});
+
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const keyword = kwInput.value.trim();
+      if (!keyword) return;
+
+      const tlds = [...tldContainer.querySelectorAll('input:checked')].map(i => i.value);
+      if (tlds.length === 0) return alert('Select at least one extension.');
+
+      // UI Reset
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner"></span> Generating...';
+      resultsSection.classList.add('active');
+      domainList.innerHTML = '';
+      statusMsg.textContent = '🤖 Asking AI for name ideas...';
+
+      try {
+        // Step 1: Generate Names
+        const genRes = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ keyword, style: styleSelect.value, tlds, count: 20 })
+        });
+        
+        if (!genRes.ok) throw new Error('Generation failed');
+        const genData = await genRes.json();
+        
+        statusMsg.textContent = `✨ Generated ${genData.domains.length} ideas. Checking availability...`;
+
+        // Render "Checking" state
+        const rows = genData.domains.map((d, index) => {
+          const li = document.createElement('li');
+          li.className = 'domain-item';
+          li.style.animationDelay = `${index * 0.05}s`;
+          li.innerHTML = `
+            <div class="domain-name">
+              ${d.domain}
+              <span class="badge checking">checking</span>
+              <span class="domain-why">${d.why || ''}</span>
+            </div>
+            <a href="#" class="btn-buy hidden" target="_blank">Buy →</a>
+          `;
+          domainList.appendChild(li);
+          return { li, domain: d.domain };
+        });
+
+        // Step 2: Check Availability
+        const checkRes = await fetch('/api/check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ domains: rows.map(r => r.domain) })
+        });
+        
+        const checkData = await checkRes.json();
+        const resultMap = Object.fromEntries(checkData.results.map(r => [r.domain, r]));
+
+        let availableCount = 0;
+
+        rows.forEach(({ li, domain }) => {
+          const res = resultMap[domain] || { status: 'unknown' };
+          const badge = li.querySelector('.badge');
+          const btn = li.querySelector('.btn-buy');
+
+          if (res.status === 'available') {
+            badge.className = 'badge avail';
+            badge.textContent = '✓ available';
+            availableCount++;
+            
+            // Add affiliate link
+            let buyUrl = `https://www.namecheap.com/domains/registration/results/?domain=${encodeURIComponent(domain)}`;
+            if (affiliateId) buyUrl += `&aff=${encodeURIComponent(affiliateId)}`;
+            
+            btn.href = buyUrl;
+            btn.classList.remove('hidden');
+          } else if (res.status === 'taken') {
+            badge.className = 'badge taken';
+            badge.textContent = '✗ taken';
+          } else {
+            badge.className = 'badge unknown';
+            badge.textContent = '? unknown';
+          }
+        });
+
+        statusMsg.textContent = availableCount > 0 
+          ? `🎉 Found ${availableCount} available domains. Click Buy to register.`
+          : '😔 All generated names are taken. Try a different keyword.';
+
+      } catch (err) {
+        statusMsg.textContent = '❌ Error: ' + err.message;
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Generate Domains';
+      }
+    };
+  </script>
+</body>
+</html>
